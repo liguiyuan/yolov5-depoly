@@ -2,7 +2,7 @@
 
 
 
-1. Download `tensorrtx` project.
+**1. Download `tensorrtx` project**
 
 url: https://github.com/wang-xinyu/tensorrtx.git
 
@@ -14,7 +14,7 @@ cp tensorrtx/yolov5/gen_wts.py ./yolov5
 
 
 
-2. Generate `yolov5s.wts` file.
+**2.Generate `yolov5s.wts` file**
 
 ```bash
 python gen_wts.py -w yolov5s.pt -o yolov5s.wts
@@ -22,31 +22,31 @@ python gen_wts.py -w yolov5s.pt -o yolov5s.wts
 
 
 
-3. Download TensorRT and build, install in Ubuntu18.04.
+**3.Download TensorRT and build, install in Ubuntu18.04**
 
 see: https://blog.csdn.net/u012505617/article/details/110437890
 
 
 
-4. Build `tensorrtx/yolov5` project.
+**4.Build `tensorrtx/yolov5` project**
 
-   ```bash
-   cd {tensorrtx}/yolov5/
-   mkdir build
-   cd build
-   cp yolov5/yolov5s.wts tensorrtx/yolov5/build
-   cmake ..
-   make
-   ```
+```bash
+cd {tensorrtx}/yolov5/
+mkdir build
+cd build
+cp yolov5/yolov5s.wts tensorrtx/yolov5/build
+cmake ..
+make
+```
 
-   If run "make" command error, such as:
+If run "make" command error, such as:
 
-   > tensorrtx/yolov5/yololayer.h:6:10: fatal error: NvInfer.h: 没有那个文件或目录
-   >  #include <NvInfer.h>
-   >           ^~~~~~~~~~~
-   > compilation terminated.
-   > CMake Error at myplugins_generated_yololayer.cu.o.Debug.cmake:219 (message):
-   >   Error generating
+> tensorrtx/yolov5/yololayer.h:6:10: fatal error: NvInfer.h: 没有那个文件或目录
+>  #include <NvInfer.h>
+>           ^~~~~~~~~~~
+> compilation terminated.
+> CMake Error at myplugins_generated_yololayer.cu.o.Debug.cmake:219 (message):
+>   Error generating
 
 ​		
 
@@ -68,23 +68,23 @@ Success!
 
 
 
-5. Generate engine model
+**5.Generate engine model**
 
-   ```bash
-   ./yolov5 -s  yolov5s.wts yolov5s.engine s
-   ```
+```bash
+./yolov5 -s  yolov5s.wts yolov5s.engine s
+```
 
-   This step will generate `yolov5s.engine`, `libmyplugins.so` file.
+This step will generate `yolov5s.engine`, `libmyplugins.so` file.
 
-   
 
-6. We can run inference by TensorRT 
 
-   ```bash
-   ./yolov5 -d yolov5s.engine ../samples
-   ```
+**6.We can run inference by TensorRT** 
 
-   
+```bash
+./yolov5 -d yolov5s.engine ../samples
+```
+
+
 
 Model inference used time only 5ms.
 

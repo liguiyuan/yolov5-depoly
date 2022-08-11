@@ -4,10 +4,6 @@
 
 
 
-1.convert pt model to onnx model
-
-
-
 **1.clone yolov5 project**
 
 ```bash
