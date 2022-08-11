@@ -53,7 +53,7 @@ Second, we can use onnx model to inference:
 python detect.py --weights yolov5s.onnx --source ./data/images/bus.jpg
 ```
 
-<img src="/home/liguiyuan/文档/notes/yolo/bus.jpg" style="zoom: 50%;" />
+<img src="https://github.com/liguiyuan/yolov5-depoly/blob/main/docs/bus.jpg"/>
 
 
 
