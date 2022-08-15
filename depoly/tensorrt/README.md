@@ -90,3 +90,5 @@ Model inference used time only 5ms.
 
 
 
+<img src="https://github.com/liguiyuan/yolov5-depoly/blob/main/docs/_bus.jpg"/>
+
