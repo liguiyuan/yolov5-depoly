@@ -8,7 +8,6 @@ import os
 from pathlib import Path
 
 import numpy as np
-import torch
 from PIL import ExifTags
 
 from utils.augmentations import letterbox

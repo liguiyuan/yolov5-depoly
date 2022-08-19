@@ -3,24 +3,18 @@
 Plotting utils
 """
 
-import math
 import os
-from copy import copy
 from pathlib import Path
 from urllib.error import URLError
 
 import cv2
 import matplotlib
-import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
-import seaborn as sn
 import torch
 from PIL import Image, ImageDraw, ImageFont
 
-from utils.general import (CONFIG_DIR, FONT, LOGGER, Timeout, check_font, check_requirements, clip_coords,
-                           increment_path, is_ascii, threaded, try_except, xywh2xyxy, xyxy2xywh)
-from utils.metrics import fitness
+from utils.general import (CONFIG_DIR, FONT, check_font, check_requirements, clip_coords,
+                           increment_path, is_ascii, xywh2xyxy, xyxy2xywh)
 
 # Settings
 RANK = int(os.getenv('RANK', -1))

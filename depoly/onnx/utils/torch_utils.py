@@ -3,15 +3,12 @@
 PyTorch utils
 """
 
-import math
 import os
 import platform
 import time
 import warnings
 
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
 
 from utils.general import LOGGER, file_date, git_describe
 
