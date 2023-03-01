@@ -46,10 +46,10 @@ If convert success, output:
 Second, we can use onnx model to inference:
 
 ```bash
-python detect.py --weights yolov5s.onnx --source ./data/images/bus.jpg
+python detect_onnx_inference.py
 ```
 
-<img src="https://github.com/liguiyuan/yolov5-depoly/blob/main/docs/bus.jpg"/>
+<img src="https://github.com/liguiyuan/yolov5-depoly/blob/main/depoly/onnx/images/detect_onnx_result.jpg"/>
 
 
 
