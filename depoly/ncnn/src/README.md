@@ -59,11 +59,11 @@ python export.py --weights yolov5s.pt --include onnx --img 640 --train --simplif
 
 open `yolov5s_6_0.param` file, find all the `Reshape` layers,  change `0=6400, 0=1600, 0=400` to 0=-1, 0=-1, 0=-1, then save file.
 
-<img src="/home/liguiyuan/ai/deep_learning/yolov5-depoly/depoly/ncnn/images/modify0.png" style="zoom:80%;" />
+<img src="https://github.com/liguiyuan/yolov5-depoly/blob/main/depoly/ncnn/images/modify0.png" style="zoom:80%;" />
 
 
 
-<img src="/home/liguiyuan/ai/deep_learning/yolov5-depoly/depoly/ncnn/images/modify1.png" style="zoom: 80%;" />
+<img src="https://github.com/liguiyuan/yolov5-depoly/blob/main/depoly/ncnn/images/modify1.png" style="zoom: 80%;" />
 
 
 
@@ -79,7 +79,7 @@ make
 ./yolov5 ../images/000000070254.jpg
 ```
 
-![](/home/liguiyuan/ai/deep_learning/yolov5-depoly/depoly/ncnn/images/image.jpg)
+<img src="https://github.com/liguiyuan/yolov5-depoly/blob/main/depoly/ncnn/images/result.jpg"/>
 
 
 
