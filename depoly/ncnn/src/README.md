@@ -1,6 +1,6 @@
 ## ncnn inference
 
-##### 1. convert `pt` model to `ncnn` model
+#### 1. convert `pt` model to `ncnn` model
 
 references: [ultralytics/yolov5#251](https://github.com/ultralytics/yolov5/issues/251)
 
@@ -23,7 +23,7 @@ If convert success, output:
 
 
 
-##### 2. onnx model simplify
+#### 2. onnx model simplify
 
 run cmd:
 
@@ -39,7 +39,7 @@ python export.py --weights yolov5s.pt --include onnx --img 640 --train --simplif
 
 
 
-##### 3. convert onnx model to ncnn model
+#### 3. convert onnx model to ncnn model
 
 ```bash
 ./onnx2ncnn yolov5s_6_0.onnx yolov5s_6_0.param yolov5s_6_0.bin
@@ -47,7 +47,7 @@ python export.py --weights yolov5s.pt --include onnx --img 640 --train --simplif
 
 
 
-##### 4.ncnn optimize
+#### 4.ncnn optimize
 
 ```bash
 ./ncnnoptimize yolov5s_6_0.param yolov5s_6_0.bin yolov5s_6_0-opt.param yolov5s_6_0-opt.bin 65536
@@ -55,19 +55,19 @@ python export.py --weights yolov5s.pt --include onnx --img 640 --train --simplif
 
 
 
-##### 5. modify ncnn param file
+#### 5. modify ncnn param file
 
 open `yolov5s_6_0.param` file, find all the `Reshape` layers,  change `0=6400, 0=1600, 0=400` to 0=-1, 0=-1, 0=-1, then save file.
 
-<img src="https://github.com/liguiyuan/yolov5-depoly/blob/main/depoly/ncnn/images/modify0.png" style="zoom:80%;" />
+<img src="https://github.com/liguiyuan/yolov5-depoly/blob/main/depoly/ncnn/images/modify0.png"/>
 
 
 
-<img src="https://github.com/liguiyuan/yolov5-depoly/blob/main/depoly/ncnn/images/modify1.png" style="zoom: 80%;" />
+<img src="https://github.com/liguiyuan/yolov5-depoly/blob/main/depoly/ncnn/images/modify1.png"/>
 
 
 
-##### 6. run demo
+#### 6. run demo
 
 run cmd:
 
