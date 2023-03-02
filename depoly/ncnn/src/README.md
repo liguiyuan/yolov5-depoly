@@ -42,7 +42,7 @@ python export.py --weights yolov5s.pt --include onnx --img 640 --train --simplif
 #### 3. convert onnx model to ncnn model
 
 ```bash
-./onnx2ncnn yolov5s_6_0.onnx yolov5s_6_0.param yolov5s_6_0.bin
+./onnx2ncnn yolov5s.onnx yolov5s_6.0.param yolov5s_6.0.bin
 ```
 
 
@@ -50,14 +50,14 @@ python export.py --weights yolov5s.pt --include onnx --img 640 --train --simplif
 #### 4.ncnn optimize
 
 ```bash
-./ncnnoptimize yolov5s_6_0.param yolov5s_6_0.bin yolov5s_6_0-opt.param yolov5s_6_0-opt.bin 65536
+./ncnnoptimize yolov5s_6.0.param yolov5s_6.0.bin yolov5s_6.0-opt.param yolov5s_6.0-opt.bin 65536
 ```
 
 
 
 #### 5. modify ncnn param file
 
-open `yolov5s_6_0.param` file, find all the `Reshape` layers,  change `0=6400, 0=1600, 0=400` to 0=-1, 0=-1, 0=-1, then save file.
+open `yolov5s_6.0-opt.param` file, find all the `Reshape` layers,  change `0=6400, 0=1600, 0=400` to `0=-1, 0=-1, 0=-1`, then save file.
 
 <img src="https://github.com/liguiyuan/yolov5-depoly/blob/main/depoly/ncnn/images/modify0.png"/>
 
