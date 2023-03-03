@@ -293,8 +293,8 @@ def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None):
 
 
 def onnx_runtime(model_file, image_file):
-    session = onnxruntime.InferenceSession(model_file, providers=['CPUExecutionProvider'])
-
+    session = onnxruntime.InferenceSession(model_file, providers=['TensorrtExecutionProvider', 'CUDAExecutionProvider', 'CPUExecutionProvider'])
+    print('valid providers: ', session.get_providers())
     path, im, im0s = image_process(image_file)
 
     names = [f'class{i}' for i in range(1000)]
@@ -338,6 +338,8 @@ def onnx_runtime(model_file, image_file):
             # Save results
             cv2.imwrite('./images/detect_onnx_result.jpg', im0)
             print('save result: ./images/detect_onnx_result.jpg')
+            cv2.imshow("image", im0)
+            cv2.waitKey(0)
 
 
 def main():
