@@ -47,6 +47,9 @@ private:
     void loadOnnx(const std::string strName);
     void loadTrt(const std::string strName);
 
+    cv::Mat resize_image(cv::Mat srcimg, int *newh, int *neww, int *top, int *left);
+
+
     nvinfer1::ICudaEngine *m_CudaEngine;
     nvinfer1::IRuntime *m_CudaRuntime;
     nvinfer1::IExecutionContext *m_CudaContext;

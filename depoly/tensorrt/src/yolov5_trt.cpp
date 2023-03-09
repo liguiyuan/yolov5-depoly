@@ -166,13 +166,40 @@ YOLOv5::~YOLOv5()
 }
 
 
+cv::Mat YOLOv5::resize_image(cv::Mat srcimg, int *newh, int *neww, int *top, int *left)
+{
+    int srch = srcimg.rows;
+    int srcw = srcimg.cols;
+    *newh = this->inpHeight;
+    *neww = this->inpWidth;
+    cv::Mat dstimg;
+
+
+
+}
+
+
+void YOLOv5::detect(cv::Mat& frame)
+{
+    int newh = 0, neww = 0, padh = 0, padw = 0;
+    cv::Mat dstimg = this->resize_image(frame, &newh, &neww, &padh, &padw);
+}
+
+
 int main(int argc, char const *argv[])
 {
     clock_t startTime, endTime;  // 计算时间
     Configuration yolo_nets = {0.3, 0.5, 0.3, "../models/yolov5s.onnx"};
     YOLOv5 yolo_model(yolo_nets);
 
+    std::string imgpath = "../images/bus.jpg";
+    cv::Mat srcimg = cv::imread(imgpath);
 
+    double timeStart = (double)cv::getTickCount();
+    startTime = clock();
+
+    yolo_model.detect(srcimg);
+    endTime = clock();
 
 
     return 0;
