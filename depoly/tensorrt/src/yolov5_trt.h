@@ -43,11 +43,14 @@ private:
     float objThreshold;
     int inpWidth;
     int inpHeight;
+    const bool keep_ratio = true;
 
     void loadOnnx(const std::string strName);
     void loadTrt(const std::string strName);
+    void nms(std::vector<BoxInfo>& input_boxes);
 
     cv::Mat resize_image(cv::Mat srcimg, int *newh, int *neww, int *top, int *left);
+
 
 
     nvinfer1::ICudaEngine *m_CudaEngine;
@@ -67,6 +70,21 @@ private:
     int m_ArraySize[2]{0};
 
     std::vector<cv::Mat> m_InputWrappers{};
+
+    std::string classes[80] = {"person", "bicycle", "car", "motorbike", "aeroplane", "bus",
+                            "train", "truck", "boat", "traffic light", "fire hydrant",
+                            "stop sign", "parking meter", "bench", "bird", "cat", "dog",
+                            "horse", "sheep", "cow", "elephant", "bear", "zebra", "giraffe",
+                            "backpack", "umbrella", "handbag", "tie", "suitcase", "frisbee",
+                            "skis", "snowboard", "sports ball", "kite", "baseball bat",
+                            "baseball glove", "skateboard", "surfboard", "tennis racket",
+                            "bottle", "wine glass", "cup", "fork", "knife", "spoon", "bowl",
+                            "banana", "apple", "sandwich", "orange", "broccoli", "carrot",
+                            "hot dog", "pizza", "donut", "cake", "chair", "sofa", "pottedplant",
+                            "bed", "diningtable", "toilet", "tvmonitor", "laptop", "mouse",
+                            "remote", "keyboard", "cell phone", "microwave", "oven", "toaster",
+                            "sink", "refrigerator", "book", "clock", "vase", "scissors",
+                            "teddy bear", "hair drier", "toothbrush"};
 
     
 };

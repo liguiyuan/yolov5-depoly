@@ -174,7 +174,64 @@ cv::Mat YOLOv5::resize_image(cv::Mat srcimg, int *newh, int *neww, int *top, int
     *neww = this->inpWidth;
     cv::Mat dstimg;
 
+    if (this->keep_ratio && srch != srcw) {
+        float hw_scale = (float)srch / srcw;
+        if (hw_scale > 1) {
+            *newh = this->inpHeight;
+            *neww = int(this->inpWidth / hw_scale);
+            cv::resize(srcimg, dstimg, cv::Size(*neww, *newh), cv::INTER_AREA);
+            *left = int((this->inpWidth - *neww) * 0.5);
+            cv::copyMakeBorder(dstimg, dstimg, 0, 0, *left, this->inpWidth - *neww - *left, cv::BORDER_CONSTANT, 114);
+        } else {
+            *newh = (int)this->inpHeight * hw_scale;
+            *neww = this->inpWidth;
+            cv::resize(srcimg, dstimg, cv::Size(*neww, *newh), cv::INTER_AREA);
+            *top = (int)(this->inpHeight - *newh) * 0.5;
+            cv::copyMakeBorder(dstimg, dstimg, *top, this->inpHeight - *newh - *top, 0, 0, cv::BORDER_CONSTANT, 114);
+        }
+    } else {
+        cv::resize(srcimg, dstimg, cv::Size(*neww, *newh), cv::INTER_AREA);
+    }
+    return dstimg;
+}
 
+
+void YOLOv5::nms(std::vector<BoxInfo>& input_boxes)
+{
+    sort(input_boxes.begin(), input_boxes.end(), [](BoxInfo a, BoxInfo b) {return a.score > b.score; });  // 降序排列
+    std::vector<bool> remove_flags(input_boxes.size(), false);
+    auto iou = [](const BoxInfo& box1, const BoxInfo& box2)
+    {
+        float xx1 = std::max(box1.x1, box2.x1);
+        float yy1 = std::max(box1.y1, box2.y1);
+        float xx2 = std::min(box1.x2, box2.x2);
+        float yy2 = std::min(box1.y2, box2.y2);
+        // 交集
+        float w = std::max(0.0f, xx2 - xx1 + 1);
+        float h = std::max(0.0f, yy2 - yy1 + 1);
+        float inter_area = w * h;
+
+        // 并集
+        float union_area = std::max(0.0f,box1.x2-box1.x1) * std::max(0.0f,box1.y2-box1.y1)
+                           + std::max(0.0f,box2.x2-box2.x1) * std::max(0.0f,box2.y2-box2.y1) - inter_area;
+        return inter_area / union_area;
+    };
+
+    for (int i = 0; i < input_boxes.size(); i++) {
+        if (remove_flags[i]) continue;
+
+        for (int j = i + 1; j < input_boxes.size(); j++) {
+            if(remove_flags[j]) continue;
+            if (input_boxes[i].label == input_boxes[j].label && iou(input_boxes[i], input_boxes[j]) >= this->nmsThreshold)
+            {
+               remove_flags[j] = true;
+            }
+        }
+    }
+
+    int idx_t = 0;
+    // remove_if()函数 remove_if(beg, end, op) //移除区间[beg,end)中每一个“令判断式:op(elem)获得true”的元素
+    input_boxes.erase(remove_if(input_boxes.begin(), input_boxes.end(), [&idx_t, &remove_flags](const BoxInfo& f) { return remove_flags[idx_t++];}), input_boxes.end());
 
 }
 
@@ -183,6 +240,60 @@ void YOLOv5::detect(cv::Mat& frame)
 {
     int newh = 0, neww = 0, padh = 0, padw = 0;
     cv::Mat dstimg = this->resize_image(frame, &newh, &neww, &padh, &padw);
+
+    cv::cvtColor(dstimg, dstimg, cv::COLOR_BGR2RGB);  // 由BGR转成RGB
+    cv::Mat m_Normalized;
+    dstimg.convertTo(m_Normalized, CV_32FC3, 1/255.);
+    cv::split(m_Normalized, m_InputWrappers);   // 通道分离[h,w,3] rgb
+
+    //创建CUDA流,推理时TensorRT执行通常是异步的，因此将内核排入CUDA流
+    cudaStreamCreate(&m_CudaStream);
+    auto ret = cudaMemcpyAsync(m_ArrayDevMemory[m_iInputIndex], m_ArrayHostMemory[m_iInputIndex], m_ArraySize[m_iInputIndex], cudaMemcpyHostToDevice, m_CudaStream);
+    auto ret1 = m_CudaContext->enqueueV2(m_ArrayDevMemory, m_CudaStream, nullptr);  //
+    ret = cudaMemcpyAsync(m_ArrayHostMemory[m_iOutputIndex], m_ArrayDevMemory[m_iOutputIndex], m_ArraySize[m_iOutputIndex], cudaMemcpyDeviceToHost, m_CudaStream); // 输出传回给CPU，数据从显存到内存
+    ret = cudaStreamSynchronize(m_CudaStream);
+    float* pdata = (float*)m_ArrayHostMemory[m_iOutputIndex];
+
+    std::vector<BoxInfo> generate_boxes;  // BoxInfo自定义的结构体
+    float ratioh = (float)frame.rows / newh;
+    float ratiow = (float)frame.cols / neww;
+    for (int i = 0; i < m_iBoxNums; i++) {
+        int index = i * (m_iClassNums + 5);   // prob[b*num_pred_boxes*(classes+5)]
+        float obj_conf = pdata[index + 4];    // 置信度分数
+        if (obj_conf > this->objThreshold) {  // 大于阈值
+            float* max_class_pos = std::max_element(pdata + index + 5, pdata + index + 5 + m_iClassNums); //
+            (*max_class_pos) *= obj_conf;  // 最大的类别分数*置信度
+            if ((*max_class_pos) > this->confThreshold)  // 再次筛选
+            {
+                float cx = pdata[index];    // x
+                float cy = pdata[index+1];  // y
+                float w = pdata[index+2];   // w
+                float h = pdata[index+3];   // h
+
+                float xmin = (cx - padw - 0.5 * w) * ratiow;
+                float ymin = (cy - padh - 0.5 * h) * ratiow;
+                float xmax = (cx - padw + 0.5 * w) * ratiow;
+                float ymax = (cy - padh + 0.5 * h) * ratiow;
+
+                generate_boxes.push_back(BoxInfo{xmin, ymin, xmax, ymax, (*max_class_pos), max_class_pos-(pdata + index + 5)});
+            }
+        }
+    }
+
+    nms(generate_boxes);
+
+    for (size_t i = 0; i < generate_boxes.size(); i++) {
+        int xmin = int(generate_boxes[i].x1);
+        int ymin = int(generate_boxes[i].y1);
+        cv::rectangle(frame, cv::Point(xmin, ymin), cv::Point(int(generate_boxes[i].x2), int(generate_boxes[i].y2)), cv::Scalar(0, 0, 255), 2);
+        //std::string label = format("%.2f", generate_boxes[i].score);
+        //label = this->classes[generate_boxes[i].label] + ":" + label;
+        char label[256];
+        sprintf(label, "%s %.2f%%", this->classes[generate_boxes[i].label], generate_boxes[i].score);
+        
+        cv::putText(frame, label, cv::Point(xmin, ymin-5), cv::FONT_HERSHEY_SIMPLEX, 0.75, cv::Scalar(0, 255, 0), 1);
+    }
+
 }
 
 
@@ -200,7 +311,12 @@ int main(int argc, char const *argv[])
 
     yolo_model.detect(srcimg);
     endTime = clock();
+    double nTime = ((double)cv::getTickCount() - timeStart) / cv::getTickFrequency();
 
+    std::cout << "clock_running time is: " << (double)(endTime - startTime) / CLOCKS_PER_SEC << "s" << std::endl;
+    std::cout << "The run time is: " << (double)clock() / CLOCKS_PER_SEC << "s" << std::endl;
+    std::cout << "getTickCount_running time: " << nTime << 'sec\n' << std::endl;
+    cv::imwrite("result.jpg", srcimg);
 
     return 0;
 }
