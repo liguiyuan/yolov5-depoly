@@ -132,10 +132,12 @@ YOLOv5::YOLOv5(Configuration config)
 
     Dims dims_i = m_CudaEngine->getBindingDimensions(m_iInputIndex);  // 输入
     int size1 = dims_i.d[0] * dims_i.d[1] * dims_i.d[2] * dims_i.d[3];  // 展平
+    std::cout << "size1 len: " << size1 << std::endl;
     m_InputSize = cv::Size(dims_i.d[3], dims_i.d[2]);  // 输入尺寸(W, H)
 
     Dims dims_o = m_CudaEngine->getBindingDimensions(m_iOutputIndex); // 输出，维度[0,1,2,3]NHWC
     int size2 = dims_o.d[0] * dims_o.d[1] * dims_o.d[2];  // 所有大小
+    std::cout << "size2 len: " << size2 << std::endl;
     m_iClassNums = dims_o.d[2] - 5;  // [,,classes+5]
     m_iBoxNums = dims_o.d[1];  // [b,num_pre_boxes,classes+5]
 
@@ -274,14 +276,14 @@ void YOLOv5::detect(cv::Mat& frame)
                 float ymin = (cy - padh - 0.5 * h) * ratiow;
                 float xmax = (cx - padw + 0.5 * w) * ratiow;
                 float ymax = (cy - padh + 0.5 * h) * ratiow;
-
+                std::cout << "generate_boxes: " << *max_class_pos << std::endl;
                 generate_boxes.push_back(BoxInfo{xmin, ymin, xmax, ymax, (*max_class_pos), max_class_pos-(pdata + index + 5)});
             }
         }
     }
 
     nms(generate_boxes);
-
+    std::cout << "gboxes nums: " << generate_boxes.size() << std::endl;
     for (size_t i = 0; i < generate_boxes.size(); i++) {
         int xmin = int(generate_boxes[i].x1);
         int ymin = int(generate_boxes[i].y1);
@@ -289,8 +291,8 @@ void YOLOv5::detect(cv::Mat& frame)
         //std::string label = format("%.2f", generate_boxes[i].score);
         //label = this->classes[generate_boxes[i].label] + ":" + label;
         char label[256];
-        sprintf(label, "%s %.2f%%", this->classes[generate_boxes[i].label], generate_boxes[i].score);
-        
+        sprintf(label, "%s %.2f%%", this->classes[generate_boxes[i].label].c_str(), generate_boxes[i].score);
+        std::cout << "putText: " << i << std::endl;
         cv::putText(frame, label, cv::Point(xmin, ymin-5), cv::FONT_HERSHEY_SIMPLEX, 0.75, cv::Scalar(0, 255, 0), 1);
     }
 
